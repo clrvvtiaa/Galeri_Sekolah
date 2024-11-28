@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Route;
 // Halaman utama
 Route::get('/', [HomeController::class, 'index'])->name('home');
 // Route untuk memanggil galeri
-Route::get('/galeri', [HomeController::class, 'galeri'])->name('galeri');
+Route::get('/daftar-gambar', [HomeController::class, 'galeri'])->name('galeri');
 // Route untuk menampilkan profie
 Route::get('/profil', [ProfileController::class, 'profil'])->name('profil');
 // Route untuk memanggil jurusan

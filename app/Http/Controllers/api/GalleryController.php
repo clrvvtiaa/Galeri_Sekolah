@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Controllers\API;
+namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use App\Models\Post;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Controller;
+use Illuminate\Http\Response;
 
 class GalleryController extends Controller
 {
@@ -15,14 +15,30 @@ class GalleryController extends Controller
      */
     public function index()
     {
-        // Ambil semua data galeri dengan relasi post
+        // Get all galleries with their related post
         $galleries = Gallery::with('post')->get();
 
+        // Return galleries as JSON response
         return response()->json([
             'success' => true,
-            'message' => 'List of galleries',
-            'data' => $galleries,
-        ]);
+            'data' => $galleries
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Show the form for creating a new resource.
+     * For API, we can return the data to create a gallery, like posts.
+     */
+    public function create()
+    {
+        // Get all posts (for selecting a post to attach to the gallery)
+        $posts = Post::all();
+
+        // Return posts as JSON response
+        return response()->json([
+            'success' => true,
+            'data' => $posts
+        ], Response::HTTP_OK);
     }
 
     /**
@@ -30,118 +46,90 @@ class GalleryController extends Controller
      */
     public function store(Request $request)
     {
-        // Validasi input
-        $validator = Validator::make($request->all(), [
+        // Validate the incoming request
+        $validated = $request->validate([
             'post_id' => 'required|exists:posts,id',
             'position' => 'required|integer',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:active,inactive'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        // Create a new gallery record
+        $gallery = Gallery::create($validated);
 
-        // Simpan data galeri baru
-        $gallery = Gallery::create([
-            'post_id' => $request->post_id,
-            'position' => $request->position,
-            'status' => $request->status,
-        ]);
-
+        // Return a success response
         return response()->json([
             'success' => true,
             'message' => 'Gallery created successfully',
-            'data' => $gallery,
-        ], 201);
+            'data' => $gallery
+        ], Response::HTTP_CREATED);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(Gallery $gallery)
     {
-        $gallery = Gallery::with('post')->find($id);
-
-        if (!$gallery) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gallery not found',
-            ], 404);
-        }
-
+        // Return the gallery with the associated post
         return response()->json([
             'success' => true,
-            'message' => 'Gallery details',
-            'data' => $gallery,
-        ]);
+            'data' => $gallery->load('post')
+        ], Response::HTTP_OK);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     * For API, this will return the gallery and its posts to be updated.
+     */
+    public function edit(Gallery $gallery)
+    {
+        // Get all posts
+        $posts = Post::all();
+
+        // Return gallery data along with possible posts to update
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'gallery' => $gallery,
+                'posts' => $posts
+            ]
+        ], Response::HTTP_OK);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, Gallery $gallery)
     {
-        // Validasi input
-        $validator = Validator::make($request->all(), [
+        // Validate the incoming request
+        $validated = $request->validate([
             'post_id' => 'required|exists:posts,id',
             'position' => 'required|integer',
-            'status' => 'required|in:active,inactive',
+            'status' => 'required|in:active,inactive'
         ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation errors',
-                'errors' => $validator->errors(),
-            ], 422);
-        }
+        // Update the gallery
+        $gallery->update($validated);
 
-        $gallery = Gallery::find($id);
-
-        if (!$gallery) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gallery not found',
-            ], 404);
-        }
-
-        // Update data galeri
-        $gallery->update([
-            'post_id' => $request->post_id,
-            'position' => $request->position,
-            'status' => $request->status,
-        ]);
-
+        // Return a success response
         return response()->json([
             'success' => true,
             'message' => 'Gallery updated successfully',
-            'data' => $gallery,
-        ]);
+            'data' => $gallery
+        ], Response::HTTP_OK);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(Gallery $gallery)
     {
-        $gallery = Gallery::find($id);
-
-        if (!$gallery) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gallery not found',
-            ], 404);
-        }
-
+        // Delete the gallery
         $gallery->delete();
 
+        // Return a success response
         return response()->json([
             'success' => true,
-            'message' => 'Gallery deleted successfully',
-        ]);
+            'message' => 'Gallery deleted successfully'
+        ], Response::HTTP_NO_CONTENT);
     }
 }

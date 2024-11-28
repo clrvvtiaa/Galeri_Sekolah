@@ -76,12 +76,14 @@ Route::get('/posts/{id}', [PostController::class, 'show']);
 Route::put('/posts/{id}', [PostController::class, 'update']);
 Route::delete('/posts/{id}', [PostController::class, 'destroy']);
 
+Route::get('galleries', [GalleryController::class, 'index']);
+Route::post('galleries', [GalleryController::class, 'store']);
+Route::get('galleries/{gallery}', [GalleryController::class, 'show']);
+Route::put('galleries/{gallery}', [GalleryController::class, 'update']);
+Route::delete('galleries/{gallery}', [GalleryController::class, 'destroy']);
+Route::get('galleries/{gallery}/edit', [GalleryController::class, 'edit']);
+Route::get('galleries/create', [GalleryController::class, 'create']);
 
-Route::get('/galleries', [GalleryController::class, 'index']);
-Route::post('/galleries', [GalleryController::class, 'store']);
-Route::get('/galleries/{id}', [GalleryController::class, 'show']);
-Route::put('/galleries/{id}', [GalleryController::class, 'update']);
-Route::delete('/galleries/{id}', [GalleryController::class, 'destroy']);
 
 Route::get('/user', function (Request $request) {
     return $request->user();
